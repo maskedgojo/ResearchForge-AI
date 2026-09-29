@@ -13,10 +13,7 @@ class Settings(BaseSettings):
     tavily_api_key: str
 
 
-    frontend_url: str = (
-        "http://localhost:3000",
-        "https://research-forge-ai-zeta.vercel.app"
-    )
+    frontend_url: str = "http://localhost:3000,https://research-forge-ai-zeta.vercel.app"
 
 
     chroma_path: str = (
