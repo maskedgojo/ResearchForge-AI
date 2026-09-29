@@ -1,8 +1,8 @@
 import type { ResearchAnalysisResponse } from "@/types/research";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ??
-  "http://localhost:8000";
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
+  "https://researchforge-ai-production-0862.up.railway.app";
 
 export async function analyzeResearch(
   topic: string,
