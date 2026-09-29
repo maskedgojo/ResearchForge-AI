@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+:root {
+  --chrome-base: #0b0f17;
+  --chrome-surface: #111827;
+  --chrome-border: #1e293b;
+  --canvas-base: #f8faff;
+  --canvas-surface: #ffffff;
+  --surface-soft: #eff4ff;
+  --surface-soft-2: #e5eeff;
+  --border-subtle: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --ink: #0b1c30;
+  --ink-muted: #596579;
+  --accent: #4f46e5;
+  --accent-bright: #6366f1;
+  --accent-deep: #3730a3;
+  --citation-bg: #eef2ff;
+  --citation-text: #3730a3;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #dc2626;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--canvas-base);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--canvas-base);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: #c7d2fe;
+  color: #1e1b4b;
+}
+
+.heading-font {
+  font-family: "Plus Jakarta Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.mono-font {
+  font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+.surface-card {
+  background: var(--canvas-surface);
+  border: 1px solid var(--border-subtle);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04),
+    0 1px 2px -1px rgba(15, 23, 42, 0.02);
+}
+
+.soft-card {
+  background: var(--surface-soft);
+  border: 1px solid #dfe7fb;
+}
+
+.chrome-card {
+  background: var(--chrome-surface);
+  border: 1px solid var(--chrome-border);
+  color: #e5e7eb;
+}
+
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.rf-grid {
+  background-image: linear-gradient(rgba(79, 70, 229, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 70, 229, 0.035) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+@keyframes rf-pulse {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.rf-pulse {
+  animation: rf-pulse 1.6s ease-in-out infinite;
+}
+
+@media print {
+  aside,
+  header,
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+  }
+
+  body {
+    background: #ffffff;
+  }
+}
