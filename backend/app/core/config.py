@@ -14,7 +14,8 @@ class Settings(BaseSettings):
 
 
     frontend_url: str = (
-        "http://localhost:3000"
+        "http://localhost:3000",
+        "https://research-forge-ai-zeta.vercel.app"
     )
 
 
