@@ -1,183 +1,221 @@
 # ResearchForge AI
 
-ResearchForge AI is an end-to-end multi-agent research platform that turns a user topic into a structured, evidence-backed research report.
+ResearchForge AI is an end-to-end multi-agent research platform that
+turns a user topic into a structured, evidence-backed research report.
 
-Instead of treating research as a single LLM response, ResearchForge separates the workflow into explicit stages for planning, web search, retrieval, evidence synthesis, quality review, refinement, and report generation.
+Instead of treating research as a single LLM response, ResearchForge
+separates the workflow into explicit stages for planning, web search,
+retrieval, evidence synthesis, quality review, refinement, and report
+generation.
 
-## Core Workflow
+------------------------------------------------------------------------
 
-```mermaid
+# Live Demo
+
+Frontend: https://research-forge-ai-zeta.vercel.app
+
+Backend API: https://researchforge-ai-production-0862.up.railway.app
+
+API Documentation:
+https://researchforge-ai-production-0862.up.railway.app/docs
+
+------------------------------------------------------------------------
+
+# Project Motivation
+
+Modern AI assistants can generate answers quickly, but complex research
+tasks require more than text generation.
+
+ResearchForge AI focuses on building a structured research workflow
+where information is:
+
+-   collected from multiple sources
+-   retrieved based on relevance
+-   reviewed for quality
+-   refined through feedback
+-   transformed into a structured report
+
+The goal is to create a traceable and modular research system rather
+than a single conversational response.
+
+------------------------------------------------------------------------
+
+# Core Workflow
+
+``` mermaid
 flowchart TD
-    A[User Research Topic] --> B[Planner Agent]
-    B --> C[Research Questions]
-    C --> D[Searcher]
-    D --> E[Source Quality + Deduplication]
-    E --> F[ChromaDB / RAG]
-    F --> G[Researcher Agent]
-    G --> H[Critic Agent]
-    H --> I{Quality sufficient?}
-    I -- No --> J[Refiner Agent]
-    J --> K[Targeted Follow-up Questions]
-    K --> D
-    I -- Yes --> L[Writer Agent]
-    L --> M[Final Cited Research Report]
+
+A[User Research Topic] --> B[Planner Agent]
+
+B --> C[Research Questions]
+
+C --> D[Searcher]
+
+D --> E[Source Quality + Deduplication]
+
+E --> F[ChromaDB / RAG]
+
+F --> G[Researcher Agent]
+
+G --> H[Critic Agent]
+
+H --> I{Quality sufficient?}
+
+I -- No --> J[Refiner Agent]
+
+J --> K[Targeted Follow-up Questions]
+
+K --> D
+
+I -- Yes --> L[Writer Agent]
+
+L --> M[Final Cited Research Report]
 ```
 
-## What Makes the Project Interesting
+------------------------------------------------------------------------
 
-ResearchForge does not claim that AI-powered research itself is new. Its engineering focus is on making the research pipeline modular, auditable, and evidence-aware.
+# Production Architecture
+
+``` text
+User
+ |
+ v
+Vercel Next.js Frontend
+ |
+ v
+Railway FastAPI Backend
+ |
+ +-------------------------+
+ |                         |
+Google Gemini          Tavily Search
+ |
+ v
+Multi-Agent Research Pipeline
+ |
+ v
+ChromaDB Vector Retrieval
+ |
+ v
+Structured Research Report
+```
+
+------------------------------------------------------------------------
+
+# What Makes ResearchForge AI Interesting
+
+ResearchForge does not claim that AI-powered research itself is new. Its
+engineering focus is making the research pipeline modular, auditable,
+and evidence-aware.
 
 Key design decisions include:
 
-- Explicit Planner → Searcher → Researcher → Critic → Refiner → Writer workflow
-- Retrieval-Augmented Generation using ChromaDB
-- Research-session isolation using a unique `research_id`
-- Source normalization, deduplication, authority scoring, and reranking
-- Deterministic source IDs such as `S1`, `S2`, and `S3`
-- Citation validation so the LLM cannot invent arbitrary URLs
-- Critic-driven bounded refinement loops
-- Structured Gemini output validated with Pydantic
-- Section-level citations in the final report
-- Source-linked research visuals
-- Clean frontend-safe API responses without exposing raw scraped source content
+-   Explicit Planner → Searcher → Researcher → Critic → Refiner → Writer
+    workflow
+-   Retrieval-Augmented Generation using ChromaDB
+-   Research-session isolation using unique research IDs
+-   Source normalization, deduplication, and quality scoring
+-   Citation validation
+-   Structured Gemini output validated with Pydantic
+-   Section-level citations in final reports
+-   Source-linked research visuals
 
-## Main Features
+------------------------------------------------------------------------
 
-### Multi-Agent Research Pipeline
+# Main Features
 
-**Planner Agent**
-- Converts a topic into focused research questions.
-- Defines the initial research direction.
+## Multi-Agent Research Pipeline
 
-**Searcher**
-- Searches the web using Tavily.
-- Retrieves multiple candidate sources.
-- Normalizes URLs and removes duplicates.
-- Records source-quality metadata.
+### Planner Agent
 
-**RAG Layer**
-- Stores research evidence in ChromaDB.
-- Uses semantic retrieval to select relevant evidence for each question.
-- Keeps research sessions isolated using `research_id`.
+-   Converts a topic into focused research questions.
+-   Defines initial research direction.
 
-**Researcher Agent**
-- Answers individual research questions using retrieved evidence.
-- Produces summaries, key points, and trusted source IDs.
+### Searcher Agent
 
-**Critic Agent**
-- Evaluates completeness, evidence quality, source support, and missing information.
-- Produces a research quality score, strengths, gaps, and recommendations.
+-   Searches the web using Tavily.
+-   Retrieves candidate sources.
+-   Normalizes URLs.
+-   Removes duplicates.
+-   Records source metadata.
 
-**Refiner Agent**
-- Generates targeted follow-up questions from unresolved Critic feedback.
-- Triggers additional search and research when needed.
+### RAG Layer
 
-**Writer Agent**
-- Synthesizes validated findings into a professional report.
-- Produces an executive summary, report sections, conclusion, and bibliography.
+-   Stores research evidence in ChromaDB.
+-   Uses semantic retrieval.
+-   Provides relevant context to research agents.
 
-### Evidence and Citation System
+### Researcher Agent
 
-ResearchForge separates evidence retrieval from citation generation.
+-   Answers research questions using retrieved evidence.
+-   Produces structured findings.
 
-The model receives trusted source identifiers instead of being allowed to generate arbitrary source URLs. The backend validates returned source IDs and resolves them to known source metadata.
+### Critic Agent
 
-Example:
+-   Evaluates completeness.
+-   Identifies missing information.
+-   Reviews evidence quality.
+-   Provides improvement suggestions.
 
-```json
-{
-  "source_ids": ["S1", "S4"],
-  "sources": [
-    {
-      "source_id": "S1",
-      "title": "Example Research Source",
-      "url": "https://example.com/research"
-    }
-  ]
-}
-```
+### Refiner Agent
 
-This reduces the risk of fabricated citations and keeps source references deterministic inside each research run.
+-   Creates targeted follow-up research questions.
+-   Enables additional research cycles.
 
-### Source Quality Layer
+### Writer Agent
 
-The system assigns source metadata such as:
+-   Generates the final professional report.
+-   Produces summaries, sections, conclusions, and citations.
 
-- domain
-- source type
-- quality score
-- quality label
-- primary-source indicator
+------------------------------------------------------------------------
 
-The authority score is a heuristic used for ranking. It is not presented as proof that a source is factually correct.
+# Technology Stack
 
-### Research Refinement
+## Backend
 
-ResearchForge can perform up to two refinement rounds.
+-   Python
+-   FastAPI
+-   Pydantic
+-   Google Gemini API
+-   Tavily Search API
+-   ChromaDB
+-   Sentence Transformers
+-   LangChain text splitters
+-   Uvicorn
 
-Example:
+## Frontend
 
-```text
-Initial Research
-      ↓
-Critic Score: 8/10
-      ↓
-Missing evidence identified
-      ↓
-Refiner creates follow-up questions
-      ↓
-Targeted Search + Research
-      ↓
-Critic evaluates again
-      ↓
-Final Report
-```
+-   Next.js
+-   React
+-   TypeScript
+-   Tailwind CSS
+-   Lucide React
 
-### Research Visuals
+## Deployment
 
-The frontend can display images retrieved alongside cited web sources.
+-   Docker
+-   Railway (Backend)
+-   Vercel (Frontend)
 
-Visuals are shown as supporting context and are kept separate from research evidence. Images can be opened in a larger preview without cropping.
+------------------------------------------------------------------------
 
-A future extension can add AI-generated explanatory diagrams for individual report sections.
+# Engineering Highlights
 
-## Technology Stack
+-   Designed a complete agentic AI workflow.
+-   Built a Retrieval-Augmented Generation pipeline.
+-   Implemented structured LLM responses using Pydantic validation.
+-   Added source tracking and citation validation.
+-   Created production FastAPI APIs.
+-   Containerized backend deployment using Docker.
+-   Deployed frontend and backend independently on cloud platforms.
+-   Integrated Gemini and Tavily for AI reasoning and web research.
 
-### Backend
+------------------------------------------------------------------------
 
-- Python
-- FastAPI
-- Pydantic
-- Pydantic Settings
-- Google Gemini API
-- Tavily Search API
-- ChromaDB
-- Sentence Transformers
-- LangChain text splitters
-- Uvicorn
+# Project Structure
 
-### Frontend
-
-- Next.js
-- React
-- TypeScript
-- Tailwind CSS
-- Lucide React
-
-### Deployment
-
-Recommended production setup:
-
-- Frontend: Vercel
-- Backend: Railway
-- Persistent vector storage: Railway Volume
-- External services: Gemini API and Tavily API
-
-## Project Structure
-
-```text
+``` text
 ResearchForge-AI/
-│
+
 ├── backend/
 │   ├── app/
 │   │   ├── agents/
@@ -188,319 +226,203 @@ ResearchForge-AI/
 │   │   │   ├── refiner.py
 │   │   │   └── writer.py
 │   │   │
-│   │   ├── api/
-│   │   │   └── routes/
-│   │   │
-│   │   ├── core/
-│   │   │   └── config.py
-│   │   │
-│   │   ├── prompts/
 │   │   ├── rag/
-│   │   │   ├── embeddings.py
-│   │   │   ├── loader.py
-│   │   │   ├── retriever.py
-│   │   │   └── vectorstore.py
-│   │   │
 │   │   ├── schemas/
 │   │   ├── services/
 │   │   └── main.py
 │   │
-│   ├── requirements.txt
-│   └── .env
+│   ├── Dockerfile
+│   └── requirements.txt
 │
 ├── frontend/
 │   ├── app/
 │   ├── components/
-│   ├── context/
 │   ├── lib/
-│   ├── types/
 │   └── package.json
 │
 └── README.md
 ```
 
-## Local Development
+------------------------------------------------------------------------
 
-### 1. Clone the repository
+# Local Development
 
-```bash
-git clone <YOUR_REPOSITORY_URL>
-cd ResearchForge-AI
-```
+## Backend
 
-### 2. Backend setup
-
-```bash
+``` bash
 cd backend
+
 python -m venv venv
-```
 
-Activate the virtual environment.
-
-Windows:
-
-```powershell
-venv\Scripts\activate
-```
-
-macOS/Linux:
-
-```bash
-source venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
 pip install -r requirements.txt
 ```
 
-Create a `.env` file:
+Create `.env`:
 
-```env
-GEMINI_API_KEY=your_gemini_api_key
-TAVILY_API_KEY=your_tavily_api_key
+``` env
+GEMINI_API_KEY=your_key
+TAVILY_API_KEY=your_key
 ENVIRONMENT=development
 FRONTEND_URL=http://localhost:3000
 CHROMA_PATH=./chroma_db
 ```
 
-Start the API:
+Run:
 
-```bash
+``` bash
 uvicorn app.main:app --reload
 ```
 
-Backend:
+## Frontend
 
-```text
-http://localhost:8000
-```
-
-FastAPI documentation:
-
-```text
-http://localhost:8000/docs
-```
-
-### 3. Frontend setup
-
-Open another terminal:
-
-```bash
+``` bash
 cd frontend
+
 npm install
+
+npm run dev
 ```
 
 Create `.env.local`:
 
-```env
+``` env
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 ```
 
-Start the frontend:
+------------------------------------------------------------------------
 
-```bash
-npm run dev
-```
+# API
 
-Frontend:
+## Health Check
 
-```text
-http://localhost:3000
-```
+    GET /health
 
-## API
+## Create Research Plan
 
-### Create Research Plan
+    POST /research/plan
 
-```http
-POST /research/plan
-```
+## Run Complete Research Pipeline
 
-Example request:
+    POST /research/analyze
 
-```json
-{
-  "topic": "Impact of AI on software engineering"
-}
-```
+Response includes:
 
-### Run Complete Research Pipeline
+-   research_id
+-   topic
+-   questions
+-   sources
+-   findings
+-   critique
+-   refinement history
+-   final report
 
-```http
-POST /research/analyze
-```
+------------------------------------------------------------------------
 
-Example request:
+# Application Screenshots
 
-```json
-{
-  "topic": "Impact of AI on software engineering"
-}
-```
+Add screenshots:
 
-The response contains:
+-   Research workspace
+-   Generated findings
+-   Critique section
+-   Final report
+-   Source visualization
 
-```text
-research_id
-topic
-questions
-sources
-findings
-critique
-refinement_history
-report
-```
+------------------------------------------------------------------------
 
-Raw scraped source content remains internal and is not exposed through the public API.
+# Deployment
 
-## Environment Variables
+## Backend - Railway
 
-### Backend
+Backend is deployed as a Dockerized FastAPI service.
 
-| Variable | Purpose |
-| --- | --- |
-| `GEMINI_API_KEY` | Google Gemini API authentication |
-| `TAVILY_API_KEY` | Tavily web search authentication |
-| `ENVIRONMENT` | Application environment |
-| `FRONTEND_URL` | Allowed production frontend origin |
-| `CHROMA_PATH` | ChromaDB persistence directory |
+Environment variables:
 
-### Frontend
-
-| Variable | Purpose |
-| --- | --- |
-| `NEXT_PUBLIC_API_BASE_URL` | Public URL of the FastAPI backend |
-
-Never commit real API keys.
-
-## Deployment
-
-### Backend — Railway
-
-Deploy the `backend` directory as the Railway service root.
-
-Production start command:
-
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port $PORT
-```
-
-Configure:
-
-```env
+``` env
 GEMINI_API_KEY=<secret>
 TAVILY_API_KEY=<secret>
 ENVIRONMENT=production
-FRONTEND_URL=<your-vercel-url>
+FRONTEND_URL=<vercel-url>
 CHROMA_PATH=/data/chroma_db
 ```
 
-Attach a persistent volume and mount it at:
+## Frontend - Vercel
 
-```text
-/data
+Environment variable:
+
+``` env
+NEXT_PUBLIC_API_BASE_URL=<railway-backend-url>
 ```
 
-This allows ChromaDB data to survive service restarts and redeployments.
+------------------------------------------------------------------------
 
-### Frontend — Vercel
+# Production Request Flow
 
-Deploy the `frontend` directory.
-
-Configure:
-
-```env
-NEXT_PUBLIC_API_BASE_URL=https://<your-railway-backend-domain>
-```
-
-After Vercel generates the frontend domain, update the backend `FRONTEND_URL` environment variable with that exact origin.
-
-## Production Request Flow
-
-```text
+``` text
 Browser
-   ↓
+
+↓
+
 Vercel / Next.js
-   ↓
+
+↓
+
 FastAPI / Railway
-   ├── Gemini
-   ├── Tavily
-   └── ChromaDB
-   ↓
+
+↓
+
+Gemini + Tavily + ChromaDB
+
+↓
+
 Structured Research Response
-   ↓
+
+↓
+
 Research Workspace / Final Report
 ```
 
-## Current Limitations
+------------------------------------------------------------------------
 
-- Gemini API quotas can limit large research runs on low/free API tiers.
-- Some source images may block third-party embedding.
-- Retrieved images may occasionally include logos or page graphics rather than useful research figures.
-- Source authority scores are ranking heuristics, not factual-veracity scores.
-- ChromaDB currently runs as a single persistent vector store.
-- Research jobs are request-based rather than background asynchronous jobs.
-- The project does not currently include authentication or multi-user saved research history.
+# Current Status
 
-## Future Improvements
+``` text
+Backend research pipeline      Complete
 
-- LLM-aware global rate limiting and quota-safe retries
-- AI-generated explanatory diagrams
-- Better image relevance filtering
-- Background research jobs with progress streaming
-- Saved research history
-- Authentication
-- Export to PDF/DOCX
-- Additional search providers
-- Model-provider abstraction
-- Improved source credibility analysis
-- Batch embeddings and document chunking
-- Research telemetry and stage timing
-
-## Example Use Cases
-
-ResearchForge can be used for:
-
-- academic topic exploration
-- technology research
-- literature-style reviews
-- market and industry research
-- technical landscape analysis
-- evidence-backed comparative research
-- structured research report generation
-
-## Design Philosophy
-
-ResearchForge is designed around four principles:
-
-1. **Evidence before synthesis** — claims should be grounded in retrieved research.
-2. **Explicit quality control** — research is reviewed before the final report is written.
-3. **Traceable citations** — source references are deterministic and validated.
-4. **Modular orchestration** — planning, searching, retrieval, research, criticism, refinement, and writing remain independent stages.
-
-## Project Status
-
-```text
-Backend research pipeline     Complete
 RAG                           Complete
-Source-quality reranking      Complete
-Citation validation           Complete
-Critic/refinement loop        Complete
-Frontend workspace            Complete
-Source-linked visuals         Complete
-Production deployment         In progress
-Project documentation         In progress
+
+Citation validation            Complete
+
+Critic/refinement loop         Complete
+
+Frontend workspace             Complete
+
+Source-linked visuals          Complete
+
+Production deployment          Complete
+
+Documentation                  Complete
 ```
 
-## Author
+------------------------------------------------------------------------
 
-**Kushaagra Singh**
+# Future Improvements
 
-B.Tech Computer Science and Engineering  
+-   Authentication
+-   Saved research history
+-   Background research jobs
+-   Progress streaming
+-   PDF/DOCX export
+-   Better image relevance filtering
+-   Additional search providers
+-   Improved source credibility analysis
+
+------------------------------------------------------------------------
+
+# Author
+
+## Kushaagra Singh
+
+B.Tech Computer Science and Engineering
+
 KIIT University
-
----
-
-ResearchForge AI is an educational and engineering project focused on understanding how modern agentic research systems can be designed, orchestrated, evaluated, and deployed end to end.
